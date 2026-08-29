@@ -2,9 +2,12 @@ package com.roh.jwtApplication.service;
 
 import com.roh.jwtApplication.dtos.LoginRequestDto;
 import com.roh.jwtApplication.dtos.LoginResponseDto;
+import com.roh.jwtApplication.dtos.RefreshTokenRequestDto;
 import com.roh.jwtApplication.dtos.RegisterRequestDto;
+import com.roh.jwtApplication.entities.RefreshToken;
 import com.roh.jwtApplication.entities.User;
 import com.roh.jwtApplication.jwtService.JwtService;
+import com.roh.jwtApplication.jwtService.RefreshTokenService;
 import com.roh.jwtApplication.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,12 +20,14 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final  PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Override
@@ -59,10 +64,58 @@ public class UserServiceImpl implements UserService {
         if (!passwordMatches) {
             throw new RuntimeException("Invalid email or password");
         }
-        String token = jwtService.generateToken(user);
-        return new LoginResponseDto(token, "Bearer");
+        // Generate access token
+        String accessToken =
+                jwtService.generateToken(user);
+
+        // Generate refresh token
+        RefreshToken refreshToken =
+                refreshTokenService.createRefreshToken(user);
+
+        return new LoginResponseDto(accessToken, "Bearer", refreshToken.getToken());
 
     }
 
 
+    public LoginResponseDto refreshAccessToken(
+            RefreshTokenRequestDto request) {
+
+        // 1. Validate old refresh token
+        RefreshToken oldRefreshToken =
+                refreshTokenService.verifyRefreshToken(
+                        request.getRefreshToken()
+                );
+
+        // 2. Get user
+        User user = oldRefreshToken.getUser();
+
+        // 3. Revoke old refresh token
+        refreshTokenService.revokeToken(oldRefreshToken);
+
+        // 4. Generate new access token
+        String newAccessToken =
+                jwtService.generateToken(user);
+
+        // 5. Generate new refresh token
+        RefreshToken newRefreshToken =
+                refreshTokenService.createRefreshToken(user);
+
+        // 6. Return both
+        return new LoginResponseDto(
+                newAccessToken,
+                "Bearer",
+                newRefreshToken.getToken()
+        );
+    }
+
+    @Override
+    public void logout(RefreshTokenRequestDto request) {
+
+        RefreshToken refreshToken =
+                refreshTokenService.verifyRefreshToken(
+                        request.getRefreshToken()
+                );
+
+        refreshTokenService.revokeToken(refreshToken);
+    }
 }

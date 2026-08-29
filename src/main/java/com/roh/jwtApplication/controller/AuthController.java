@@ -2,6 +2,7 @@ package com.roh.jwtApplication.controller;
 
 import com.roh.jwtApplication.dtos.LoginRequestDto;
 import com.roh.jwtApplication.dtos.LoginResponseDto;
+import com.roh.jwtApplication.dtos.RefreshTokenRequestDto;
 import com.roh.jwtApplication.dtos.RegisterRequestDto;
 import com.roh.jwtApplication.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,23 @@ public class AuthController {
         LoginResponseDto response = authService.login(request);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponseDto> refresh(@RequestBody RefreshTokenRequestDto request) {
+
+        LoginResponseDto response = authService.refreshAccessToken(request);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(
+            @RequestBody RefreshTokenRequestDto request) {
+
+        authService.logout(request);
+
+        return ResponseEntity.ok("Logout successful");
     }
 
     @GetMapping("/test")

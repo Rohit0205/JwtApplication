@@ -25,15 +25,19 @@ public class RefreshToken {
     @Column(nullable = false)
     private boolean revoked = false;
 
+    @Column(name = "revoked_at")
+    private LocalDateTime revokedAt;
+
     public RefreshToken() {
     }
 
-    public RefreshToken(Long id, User user, String token, LocalDateTime expiresAt, boolean revoked) {
+    public RefreshToken(Long id, User user, String token, LocalDateTime expiresAt, boolean revoked, LocalDateTime revokedAt) {
         this.id = id;
         this.user = user;
         this.token = token;
         this.expiresAt = expiresAt;
         this.revoked = revoked;
+        this.revokedAt = revokedAt;
     }
 
     public Long getId() {
@@ -74,5 +78,13 @@ public class RefreshToken {
 
     public void setRevoked(boolean revoked) {
         this.revoked = revoked;
+    }
+
+    public LocalDateTime getRevokedAt() {
+        return revokedAt;
+    }
+
+    public void setRevokedAt(LocalDateTime revokedAt) {
+        this.revokedAt = revokedAt;
     }
 }
