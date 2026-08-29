@@ -42,15 +42,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         );
 
         // Permissions
-        user.getRole()
-                .getPermissions()
-                .forEach(permission ->
-                        authorities.add(
-                                new SimpleGrantedAuthority(
-                                        permission.name()
-                                )
-                        )
-                );
+        user.getRole().getPermissions().
+                forEach(permission -> authorities.add(new SimpleGrantedAuthority(permission.name())));
 
         return new CustomUserPrincipal(
                 user.getId(),
