@@ -1,13 +1,16 @@
 package com.roh.jwtApplication.jwtService;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -19,13 +22,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final AuthenticationEntryPoint authenticationEntryPoint;
 
     public JwtAuthenticationFilter(
             JwtService jwtService,
-            UserDetailsService userDetailsService) {
+            UserDetailsService userDetailsService, AuthenticationEntryPoint authenticationEntryPoint) {
 
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.authenticationEntryPoint = authenticationEntryPoint;
     }
 
     @Override
@@ -37,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        // No JWT
+        // No JWT → continue
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -49,22 +54,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 1. Validate JWT
             if (!jwtService.isTokenValid(jwt)) {
-                filterChain.doFilter(request, response);
+                SecurityContextHolder.clearContext();
+
+                authenticationEntryPoint.commence(
+                        request,
+                        response,
+                        new BadCredentialsException(
+                                "Invalid or expired JWT"
+                        )
+                );
+
                 return;
             }
 
             // 2. Extract email
             String email = jwtService.extractUsername(jwt);
 
-            // 3. If authentication doesn't already exist
+            // 3. Authenticate user
             if (email != null &&
-                    SecurityContextHolder.getContext().getAuthentication() == null) {
+                    SecurityContextHolder.getContext()
+                            .getAuthentication() == null) {
 
-                // 4. Load user from DB
+                // 4. Load user
                 UserDetails userDetails =
                         userDetailsService.loadUserByUsername(email);
 
-                // 5. Create Authentication
+                // 5. Create authentication
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
@@ -77,15 +92,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                 .buildDetails(request)
                 );
 
-                // 6. Store authentication
+                // 6. Store in SecurityContext
                 SecurityContextHolder.getContext()
                         .setAuthentication(authentication);
             }
 
-        } catch (Exception e) {
+        } catch (JwtException | IllegalArgumentException e) {
 
-            e.printStackTrace();
             SecurityContextHolder.clearContext();
+
+            authenticationEntryPoint.commence(
+                    request,
+                    response,
+                    new BadCredentialsException(
+                            "Invalid or expired JWT"
+                    )
+            );
+
+            return;
         }
 
         filterChain.doFilter(request, response);

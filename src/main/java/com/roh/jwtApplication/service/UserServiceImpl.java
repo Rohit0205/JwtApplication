@@ -65,14 +65,20 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Invalid email or password");
         }
         // Generate access token
-        String accessToken =
+        String NewAccessToken =
                 jwtService.generateToken(user);
 
         // Generate refresh token
-        RefreshToken refreshToken =
+        String newRefreshToken =
                 refreshTokenService.createRefreshToken(user);
 
-        return new LoginResponseDto(accessToken, "Bearer", refreshToken.getToken());
+        return new LoginResponseDto(
+                NewAccessToken,
+                "Bearer",
+                newRefreshToken
+        );
+
+      //  return new LoginResponseDto(accessToken, "Bearer", refreshToken.getToken());
 
     }
 
@@ -81,11 +87,7 @@ public class UserServiceImpl implements UserService {
             RefreshTokenRequestDto request) {
 
         // 1. Validate old refresh token
-        RefreshToken oldRefreshToken =
-                refreshTokenService.verifyRefreshToken(
-                        request.getRefreshToken()
-                );
-
+        RefreshToken oldRefreshToken = refreshTokenService.verifyRefreshToken(request.getRefreshToken());
         // 2. Get user
         User user = oldRefreshToken.getUser();
 
@@ -93,19 +95,13 @@ public class UserServiceImpl implements UserService {
         refreshTokenService.revokeToken(oldRefreshToken);
 
         // 4. Generate new access token
-        String newAccessToken =
-                jwtService.generateToken(user);
+        String newAccessToken = jwtService.generateToken(user);
 
         // 5. Generate new refresh token
-        RefreshToken newRefreshToken =
-                refreshTokenService.createRefreshToken(user);
+        String newRefreshToken = refreshTokenService.createRefreshToken(user);
 
         // 6. Return both
-        return new LoginResponseDto(
-                newAccessToken,
-                "Bearer",
-                newRefreshToken.getToken()
-        );
+        return new LoginResponseDto(newAccessToken, "Bearer", newRefreshToken);
     }
 
     @Override
