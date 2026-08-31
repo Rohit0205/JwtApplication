@@ -18,6 +18,13 @@ public class CustomAuthenticationEntryPoint
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
 
-        response.getWriter().write("{\"status\":401,\"message\":\"Unauthorized\"}");
+        String message = authException.getMessage();
+
+        response.getWriter().write("""
+                {
+                    "status": 401,
+                    "message": "%s"
+                }
+                """.formatted(message));
     }
 }

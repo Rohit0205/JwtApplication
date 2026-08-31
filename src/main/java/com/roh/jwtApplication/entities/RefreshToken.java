@@ -16,8 +16,8 @@ public class RefreshToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, unique = true, length = 500)
-    private String token;
+    @Column(name = "token_hash",  unique = true, length = 100)
+    private String tokenHash;
 
     @Column(nullable = false)
     private LocalDateTime expiresAt;
@@ -31,10 +31,10 @@ public class RefreshToken {
     public RefreshToken() {
     }
 
-    public RefreshToken(Long id, User user, String token, LocalDateTime expiresAt, boolean revoked, LocalDateTime revokedAt) {
+    public RefreshToken(Long id, User user, String tokenHash, LocalDateTime expiresAt, boolean revoked, LocalDateTime revokedAt) {
         this.id = id;
         this.user = user;
-        this.token = token;
+        this.tokenHash = tokenHash;
         this.expiresAt = expiresAt;
         this.revoked = revoked;
         this.revokedAt = revokedAt;
@@ -56,12 +56,12 @@ public class RefreshToken {
         this.user = user;
     }
 
-    public String getToken() {
-        return token;
+    public String getTokenHash() {
+        return tokenHash;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setTokenHash(String tokenHash) {
+        this.tokenHash = tokenHash;
     }
 
     public LocalDateTime getExpiresAt() {

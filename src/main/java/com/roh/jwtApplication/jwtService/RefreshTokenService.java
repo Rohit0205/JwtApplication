@@ -5,7 +5,8 @@ import com.roh.jwtApplication.entities.User;
 
 public interface RefreshTokenService {
 
-    public RefreshToken createRefreshToken(User user);
+    public String createRefreshToken(User user);
     public RefreshToken verifyRefreshToken(String token);
     public void revokeToken(RefreshToken refreshToken);
+
 }
