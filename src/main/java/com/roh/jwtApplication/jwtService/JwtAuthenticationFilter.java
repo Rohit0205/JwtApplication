@@ -114,4 +114,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+
+        String uri = request.getRequestURI();
+
+        return uri.equals("/auth/login")
+                || uri.equals("/auth/register");
+    }
 }

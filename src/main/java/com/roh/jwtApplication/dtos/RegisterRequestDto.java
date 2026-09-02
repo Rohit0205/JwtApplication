@@ -1,6 +1,7 @@
 package com.roh.jwtApplication.dtos;
 
-import com.roh.jwtApplication.enums.Role;
+
+import com.roh.jwtApplication.entities.Role;
 
 public class RegisterRequestDto {
 
