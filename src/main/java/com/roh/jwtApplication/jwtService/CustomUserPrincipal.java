@@ -1,6 +1,6 @@
 package com.roh.jwtApplication.jwtService;
 
-import com.roh.jwtApplication.enums.Role;
+import com.roh.jwtApplication.entities.Role;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

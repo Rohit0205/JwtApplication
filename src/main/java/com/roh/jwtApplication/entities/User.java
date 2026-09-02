@@ -1,6 +1,5 @@
 package com.roh.jwtApplication.entities;
 
-import com.roh.jwtApplication.enums.Role;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -42,8 +41,8 @@ public class User extends BaseEntity {
 
     private LocalDateTime lastLoginAt;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id")
     private Role role;
 
     public User() {

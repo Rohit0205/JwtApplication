@@ -2,6 +2,7 @@ package com.roh.jwtApplication.config;
 
 import com.roh.jwtApplication.jwtService.CustomAccessDeniedHandler;
 import com.roh.jwtApplication.jwtService.CustomAuthenticationEntryPoint;
+import com.roh.jwtApplication.jwtService.DynamicAuthorizationFilter;
 import com.roh.jwtApplication.jwtService.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,11 +17,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final DynamicAuthorizationFilter dynamicAuthorizationFilter;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CustomAuthenticationEntryPoint authenticationEntryPoint, CustomAccessDeniedHandler accessDeniedHandler) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, DynamicAuthorizationFilter dynamicAuthorizationFilter, CustomAuthenticationEntryPoint authenticationEntryPoint, CustomAccessDeniedHandler accessDeniedHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.dynamicAuthorizationFilter = dynamicAuthorizationFilter;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
     }
@@ -39,28 +42,13 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
+                        // Public APIs
                         .requestMatchers(
                                 "/auth/register",
-                                "/auth/login",
-                                "/auth/refresh",
-                                "/auth/logout"
+                                "/auth/login"
                         ).permitAll()
 
-                        .requestMatchers("/admin/**")
-                        .hasRole("ADMIN")
-
-                        .requestMatchers(HttpMethod.GET, "/users/**")
-                        .hasAuthority("USER_READ")
-
-                        .requestMatchers(HttpMethod.POST, "/users/**")
-                        .hasAuthority("USER_CREATE")
-
-                        .requestMatchers(HttpMethod.PUT, "/users/**")
-                        .hasAuthority("USER_UPDATE")
-
-                        .requestMatchers(HttpMethod.DELETE, "/users/**")
-                        .hasAuthority("USER_DELETE")
-
+                        // All other APIs require authentication
                         .anyRequest().authenticated()
                 )
 
@@ -69,9 +57,16 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler)
                 )
 
+                // JWT authentication first
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
+                )
+
+                // Dynamic permission check after JWT authentication
+                .addFilterAfter(
+                        dynamicAuthorizationFilter,
+                        JwtAuthenticationFilter.class
                 );
 
         return http.build();
