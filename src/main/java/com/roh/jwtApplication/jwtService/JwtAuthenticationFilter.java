@@ -121,6 +121,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String uri = request.getRequestURI();
 
         return uri.equals("/auth/login")
-                || uri.equals("/auth/register");
+                || uri.equals("/auth/register")
+                || uri.equals("/auth/otp/send")
+                || uri.equals("/auth/otp/verify");
     }
 }

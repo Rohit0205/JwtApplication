@@ -45,7 +45,9 @@ public class SecurityConfig {
                         // Public APIs
                         .requestMatchers(
                                 "/auth/register",
-                                "/auth/login"
+                                "/auth/login",
+                                "/auth/otp/send",
+                                "/auth/otp/verify"
                         ).permitAll()
 
                         // All other APIs require authentication
