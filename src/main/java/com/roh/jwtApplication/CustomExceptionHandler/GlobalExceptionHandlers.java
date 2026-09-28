@@ -9,6 +9,20 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandlers {
 
+    @ExceptionHandler(OtpException.class)
+    public ResponseEntity<ErrorResponseDto> handleOtpException(OtpException ex) {
+
+        ErrorResponseDto errorResponse =
+                new ErrorResponseDto(
+                        ex.getStatus().value(),
+                        ex.getMessage()
+                );
+
+        return ResponseEntity
+                .status(ex.getStatus())
+                .body(errorResponse);
+    }
+
     @ExceptionHandler(RefreshTokenException.class)
     public ResponseEntity<ErrorResponseDto> handleRefreshTokenException(
             RefreshTokenException ex) {
